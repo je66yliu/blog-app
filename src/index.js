@@ -22,7 +22,8 @@ let transporter = nodeMailer.createTransport({
     pass: 'm@ster21'
     }
 });
-   
+
+// send email on 17th hour CST
 cron.schedule("0 17 * * *", function () {
     if(hasUpdated){
         hasUpdated = false;
