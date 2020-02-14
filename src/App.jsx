@@ -3,13 +3,16 @@ import './App.css';
 
 import Header from './components/Header';
 import { auth, createNewUser } from './firebase/Firebase';
+import CreatePost from './components/CreatePost';
 
 class App extends Component {
 
     unsubscribeFromAuth = null;
 
     initialState = {
-        currentUser: null
+        currentUser: null,
+        titleField: '',
+        contentField: ''
     }
 
 
@@ -17,6 +20,24 @@ class App extends Component {
     constructor(props) {
         super(props);
         this.state = this.initialState;
+    }
+
+    handleChange = event => {
+        const { name, value } = event.target;
+        this.setState({ [name]: value })
+    };
+
+    handleSubmit = () => {
+        const { titleField, contentField } = this.state;
+
+        console.log(titleField + contentField);
+    }
+
+    handleReset = () => {
+        this.setState({
+            titleField: '',
+            contentField: ''
+        });
     }
 
 
@@ -43,9 +64,12 @@ class App extends Component {
 
 
     render() {
+        const { currentUser, titleField, contentField } = this.state;
+
         return (
             <div className="App">
                 <Header user={this.state.currentUser} />
+                {currentUser ? <CreatePost handleChange={this.handleChange} handleSubmit={this.handleSubmit} handleReset={this.handleReset} titleField={titleField} contentField={contentField} /> : null}
                 <section className="mw7 center">
                     <h2 className="athelas ph3 ph0-l">News</h2>
     
