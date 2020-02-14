@@ -3,14 +3,14 @@ import 'firebase/firestore';
 import 'firebase/auth';
 
 const firebaseConfig = {
-    apiKey: "AIzaSyBrPgbxv1stBqx1zRgN2ADj1z-gEHzcC20",
-    authDomain: "blog-app-31a3a.firebaseapp.com",
-    databaseURL: "https://blog-app-31a3a.firebaseio.com",
-    projectId: "blog-app-31a3a",
-    storageBucket: "blog-app-31a3a.appspot.com",
-    messagingSenderId: "272701057774",
-    appId: "1:272701057774:web:906d1fb811b9c9982a61ff",
-    measurementId: "G-WJWQC7ZDJY"
+    apiKey: process.env.REACT_APP_API_KEY,
+    authDomain: process.env.REACT_APP_AUTH_DOMAIN,
+    databaseURL: process.env.REACT_APP_DATABASE_URL,
+    projectId: process.env.REACT_APP_PROJECT_ID,
+    storageBucket: process.env.REACT_APP_STORAGE_BUCKET,
+    messagingSenderId: process.env.REACT_APP_MESSAGING_SENDER_ID,
+    appId: process.env.REACT_APP_APP_ID,
+    measurementId: process.env.REACT_APP_MEASUREMENT_ID
 };
 
 
