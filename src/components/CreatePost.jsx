@@ -5,7 +5,7 @@ import TextField from '@material-ui/core/TextField';
 
 const CreatePost = ({ handleChange, handleSubmit, handleReset, titleField, contentField }) => (
     <form onSubmit={e => { e.preventDefault() }}>
-        <div className='db'>
+        <div className='db mt4'>
             <TextField
                 id="title"
                 label="Enter a Title"

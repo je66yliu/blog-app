@@ -4,49 +4,55 @@ import './index.css';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
 
+import { BrowserRouter } from 'react-router-dom';
 import 'tachyons';
 
-ReactDOM.render(<App />, document.getElementById('root'));
+ReactDOM.render(
+    <BrowserRouter>
+        <App />
+    </BrowserRouter>,
+    document.getElementById('root')
+);
 
-// cron code
-const cron = require("node-cron");
-const nodeMailer = require("nodemailer");
+// // cron code
+// const cron = require("node-cron");
+// const nodeMailer = require("nodemailer");
 
-let testAccount = nodemailer.createTestAccount();
+// let testAccount = nodemailer.createTestAccount();
 
 
-let transporter = nodeMailer.createTransport({
-    host: 'gmail',
-    auth: {
-    user: 'blogpost.mig688.jl59683@gmail.com',
-    pass: 'm@ster21'
-    }
-});
+// let transporter = nodeMailer.createTransport({
+//     host: 'gmail',
+//     auth: {
+//     user: 'blogpost.mig688.jl59683@gmail.com',
+//     pass: 'm@ster21'
+//     }
+// });
 
-// send email on 17th hour CST
-cron.schedule("0 17 * * *", function () {
-    if(hasUpdated){
-        hasUpdated = false;
-        for(i = 0; i < users.length; i++){
-            if(users[i].subscribed){
-                const mailOptions = {
-                    from: 'blogpost.mig688.jl59683@gmail.com', // sender address
-                    to: users[i].email,// list of receivers
-                    subject: 'Daily Blogpost Update', // Subject line
-                    text: '',// plain text body
-                    html: ''// html body
-                };
+// // send email on 17th hour CST
+// cron.schedule("0 17 * * *", function () {
+//     if(hasUpdated){
+//         hasUpdated = false;
+//         for(i = 0; i < users.length; i++){
+//             if(users[i].subscribed){
+//                 const mailOptions = {
+//                     from: 'blogpost.mig688.jl59683@gmail.com', // sender address
+//                     to: users[i].email,// list of receivers
+//                     subject: 'Daily Blogpost Update', // Subject line
+//                     text: '',// plain text body
+//                     html: ''// html body
+//                 };
     
-                transporter.sendMail(mailOptions, function (error, info) {
-                    console.log(info.messageId);
-                    if (err) {
-                        console.log(err);
-                    }
-                });
-            }
-        }
-    }
-}, null, true, 'America/Chicago');
+//                 transporter.sendMail(mailOptions, function (error, info) {
+//                     console.log(info.messageId);
+//                     if (err) {
+//                         console.log(err);
+//                     }
+//                 });
+//             }
+//         }
+//     }
+// }, null, true, 'America/Chicago');
 
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.
