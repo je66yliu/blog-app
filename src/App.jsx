@@ -2,13 +2,17 @@ import React, { Component } from 'react';
 import './App.css';
 
 import Header from './components/Header';
-import { auth, createNewUser } from './firebase/Firebase';
+import ProfilePage from './components/ProfilePage';
+import { auth, createNewUser } from './services/Firebase';
 import CreatePost from './components/CreatePost';
 import PostPreview from './components/PostPreview';
 import uuidv1 from 'uuid/v1';
-import { firestore } from './firebase/Firebase';
+import { firestore } from './services/Firebase';
 import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
+import AddIcon from '@material-ui/icons/Add';
+import NotificationsActiveIcon from '@material-ui/icons/NotificationsActive';
+import NotificationsOffIcon from '@material-ui/icons/NotificationsOff';
 import Button from '@material-ui/core/Button';
 import { Switch, Route, Link } from 'react-router-dom';
 
@@ -44,17 +48,20 @@ class App extends Component {
             alert('Title or content cannot be empty!');
         } else {
 
+            const postID = 999999999 - posts.length;
             const newPost = {
+                id: postID,
                 key: uuidv1(),
                 title: titleField,
                 content: contentField,
                 author: currentUser.displayName,
-                date: new Date().toString().split(':').slice(0, 2).toString().replace(',', ':')
+                date: new Date().toString().split(':').slice(0, 2).toString().replace(',', ':'),
+                likes: {}
             };
     
             this.handleReset();
 
-            firestore.doc(`posts/${100000000 - posts.length - 1}`).set(newPost);
+            firestore.doc(`posts/${postID}`).set(newPost);
         }
     }
 
@@ -75,6 +82,41 @@ class App extends Component {
         this.setState(state => ({
             currentPage: state.currentPage - 1
         }));
+    }
+
+    handleSubscription = async sub => {
+        const userRef = firestore.doc(`users/${this.state.currentUser.id}`);
+
+        try {
+            await userRef.set({ ...this.state.currentUser, isSubscribed: sub });
+        } catch (err) {
+            console.log('Error handling subscription.', err.message);
+        }
+    }
+
+    handleLike = async (like, postID) => {
+        const { currentUser } = this.state;
+
+        if (!currentUser) {
+            alert('Please sign in to like this post.');
+            return;
+        }
+
+        const postRef = firestore.doc(`posts/${postID}`);
+        const postSnapshot = await postRef.get();
+        const postData = postSnapshot.data();
+
+        try {
+            if (like) {
+                const updatedUserLikes = { ...postData.likes, [currentUser.id]: like };
+                await postRef.set({ ...postData, likes: updatedUserLikes });
+            } else {
+                delete postData.likes[currentUser.id];
+                await postRef.set({ ...postData, likes: postData.likes });
+            }
+        } catch (err) {
+            console.log('Error handling like.', err.message);
+        }
     }
 
 
@@ -112,49 +154,84 @@ class App extends Component {
 
 
     render() {
-        const { titleField, contentField, currentUser, posts, currentPage } = this.state;
+        const { currentUser, posts, currentPage } = this.state;
 
         return (
             <div className="App">
-                <Header user={this.state.currentUser} />
+                <Header user={currentUser} />
                 <Switch>
-                    <Route exact path={process.env.PUBLIC_URL + '/'}>
-                        {currentUser ? <CreatePost handleChange={this.handleChange} handleSubmit={this.handleSubmit} handleReset={this.handleReset} titleField={titleField} contentField={contentField} /> : null}
+                    <Route exact path={`${process.env.PUBLIC_URL}/`}>
                         <section className="mw7 center">
                             <h1 className="athelas ph3 ph0-l">News Feed</h1>
-                            {posts.length ?
-                                <div>
-                                    {posts.slice((currentPage - 1) * 5, currentPage * 5).map(post => (<PostPreview {...post} />))}
-                                    <div className='ma4'>
-                                        <Button onClick={this.handlePageBackward} variant='contained' disabled={currentPage === 1}><ArrowBackIcon /></Button>
-                                            <span className='mh3'>{`Page ${currentPage} of ${Math.ceil(posts.length / 5)}`}</span>
-                                        <Button onClick={this.handlePageForward} variant='contained' disabled={currentPage === Math.ceil(posts.length / 5)}><ArrowForwardIcon /></Button>
+                            
+                            {
+                                currentUser ?
+                                    <div>
+                                        <div className='mh3 dib'>
+                                            <Link to={`${process.env.PUBLIC_URL}/newpost`} style={{ textDecoration: 'none' }}>
+                                                <Button variant='contained' style={{ backgroundColor: '#1777f2', color: 'white' }}><AddIcon /><span>New Post</span></Button>
+                                            </Link>
+                                        </div>
+                                        {
+                                            currentUser.isSubscribed ? 
+                                                <div className='mh3 dib'>
+                                                    <Button variant='contained' onClick={() => this.handleSubscription(false)}><NotificationsOffIcon /><span>Unsubscribe</span></Button>
+                                                </div>
+                                            :   <div className='mh3 dib'>
+                                                    <Button variant='contained' onClick={() => this.handleSubscription(true)} style={{ backgroundColor: '#f90300', color: 'white' }}><NotificationsActiveIcon /><span>Subscribe</span></Button>
+                                                </div>
+                                        }
                                     </div>
-                                    <div className='ma3'>
-                                        <Link to={process.env.PUBLIC_URL + '/all'} style={{ textDecoration: 'none' }}>
-                                            <Button style={{ textTransform: 'none' }} variant='outlined'>View All Posts</Button>
-                                        </Link>
+                                :   null
+                            }
+
+                            {
+                                posts.length ?
+                                    <div>
+                                        {posts.slice((currentPage - 1) * 5, currentPage * 5).map(post => (<PostPreview {...post} currentUserID={currentUser ? currentUser.id : null} userName ={currentUser ? currentUser.email.split('@')[0] : null} handleLike={this.handleLike} />))}
+                                        <div className='ma4'>
+                                            <Button onClick={this.handlePageBackward} variant='contained' disabled={currentPage === 1}><ArrowBackIcon /></Button>
+                                                <span className='mh3'>{`Page ${currentPage} of ${Math.ceil(posts.length / 5)}`}</span>
+                                            <Button onClick={this.handlePageForward} variant='contained' disabled={currentPage === Math.ceil(posts.length / 5)}><ArrowForwardIcon /></Button>
+                                        </div>
+                                        <div className='ma3'>
+                                            <Link to={`${process.env.PUBLIC_URL}/all`} style={{ textDecoration: 'none' }}>
+                                                <Button style={{ textTransform: 'none' }} variant='outlined'>View All Posts</Button>
+                                            </Link>
+                                        </div>
                                     </div>
-                                </div>
-                            : <h2>No posts yet!</h2>}
+                                :   <h3 className='fw4'>No posts yet!</h3>
+                            }
                         </section>
                     </Route>
 
-                    <Route path={process.env.PUBLIC_URL + '/all'}>
+                    <Route path={`${process.env.PUBLIC_URL}/newpost`}>
+                        <CreatePost handleChange={this.handleChange} handleSubmit={this.handleSubmit} handleReset={this.handleReset} {...this.state} />
+                    </Route>
+
+                    <Route path={`${process.env.PUBLIC_URL}/all`}>
                         <section className="mw7 center">
                             <h1 className="athelas ph3 ph0-l">All Posts</h1>
-                            {posts.length ?
-                                <div>
-                                    {posts.map(post => (<PostPreview {...post} />))}
-                                    <div className='ma3'>
-                                        <Link to={process.env.PUBLIC_URL + '/'} style={{ textDecoration: 'none' }}>
-                                            <Button style={{ textTransform: 'none' }} variant='outlined'>Back to News Feed</Button>
-                                        </Link>
+                            {
+                                posts.length ?
+                                    <div>
+                                        {posts.map(post => (<PostPreview {...post} currentUserID={currentUser ? currentUser.id : null} userName ={currentUser ? currentUser.email.split('@')[0] : null} handleLike={this.handleLike} />))}
+                                        <div className='ma3'>
+                                            <Link to={`${process.env.PUBLIC_URL}/`} style={{ textDecoration: 'none' }}>
+                                                <Button style={{ textTransform: 'none' }} variant='outlined'>Back to News Feed</Button>
+                                            </Link>
+                                        </div>
                                     </div>
-                                </div>
-                            : <h2>No posts yet!</h2>}
+                                :   <h3 className='fw4'>No posts yet!</h3>
+                            }
                         </section>
                     </Route>
+
+                    <Route exact path={`${process.env.PUBLIC_URL}/profile`}>
+                        <img src={currentUser ? currentUser.photoURL : ''} alt='profile pic' />
+                    </Route>
+
+                    <Route exact path={`${process.env.PUBLIC_URL}/profile/:userID`} component={ProfilePage} />
                 </Switch>
             </div>
         );

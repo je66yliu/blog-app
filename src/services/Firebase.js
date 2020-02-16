@@ -30,7 +30,7 @@ export const createNewUser = async (userAuth, additionalData) => {
     const snapShot = await userRef.get();
 
     if (!snapShot.exists) {
-        const { displayName, email } = userAuth;
+        const { displayName, email, photoURL } = userAuth;
         const createdAt = new Date();
 
         try {
@@ -38,6 +38,8 @@ export const createNewUser = async (userAuth, additionalData) => {
                 displayName,
                 email,
                 createdAt,
+                photoURL,
+                isSubscribed: false,
                 ...additionalData
             });
         } catch (err) {
