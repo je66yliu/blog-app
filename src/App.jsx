@@ -3,17 +3,19 @@ import './App.css';
 
 import Header from './components/Header';
 import ProfilePage from './components/ProfilePage';
-import { auth, createNewUser } from './services/Firebase';
 import CreatePost from './components/CreatePost';
 import PostPreview from './components/PostPreview';
-import uuidv1 from 'uuid/v1';
-import { firestore } from './services/Firebase';
+
 import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 import AddIcon from '@material-ui/icons/Add';
 import NotificationsActiveIcon from '@material-ui/icons/NotificationsActive';
 import NotificationsOffIcon from '@material-ui/icons/NotificationsOff';
 import Button from '@material-ui/core/Button';
+
+import { auth, createNewUser } from './services/Firebase';
+import { firestore } from './services/Firebase';
+import uuidv1 from 'uuid/v1';
 import { Switch, Route, Link } from 'react-router-dom';
 
 class App extends Component {
@@ -54,7 +56,7 @@ class App extends Component {
                 key: uuidv1(),
                 title: titleField,
                 content: contentField,
-                author: currentUser.displayName,
+                author: currentUser,
                 date: new Date().toString().split(':').slice(0, 2).toString().replace(',', ':'),
                 likes: {}
             };
@@ -86,9 +88,11 @@ class App extends Component {
 
     handleSubscription = async sub => {
         const userRef = firestore.doc(`users/${this.state.currentUser.id}`);
+        const userObj = await userRef.get();
+        const userData = userObj.data();
 
         try {
-            await userRef.set({ ...this.state.currentUser, isSubscribed: sub });
+            await userRef.set({ ...userData, isSubscribed: sub });
         } catch (err) {
             console.log('Error handling subscription.', err.message);
         }
@@ -157,12 +161,12 @@ class App extends Component {
         const { currentUser, posts, currentPage } = this.state;
 
         return (
-            <div className="App">
+            <div className='App'>
                 <Header user={currentUser} />
                 <Switch>
                     <Route exact path={`${process.env.PUBLIC_URL}/`}>
-                        <section className="mw7 center">
-                            <h1 className="athelas ph3 ph0-l">News Feed</h1>
+                        <section className='mw7 center'>
+                            <h1 className='athelas ph3 ph0-l'>News Feed</h1>
                             
                             {
                                 currentUser ?
@@ -188,7 +192,7 @@ class App extends Component {
                             {
                                 posts.length ?
                                     <div>
-                                        {posts.slice((currentPage - 1) * 5, currentPage * 5).map(post => (<PostPreview {...post} currentUserID={currentUser ? currentUser.id : null} userName ={currentUser ? currentUser.email.split('@')[0] : null} handleLike={this.handleLike} />))}
+                                        {posts.slice((currentPage - 1) * 5, currentPage * 5).map(post => (<PostPreview {...post} currentUser={currentUser} handleLike={this.handleLike} />))}
                                         <div className='ma4'>
                                             <Button onClick={this.handlePageBackward} variant='contained' disabled={currentPage === 1}><ArrowBackIcon /></Button>
                                                 <span className='mh3'>{`Page ${currentPage} of ${Math.ceil(posts.length / 5)}`}</span>
@@ -210,12 +214,12 @@ class App extends Component {
                     </Route>
 
                     <Route path={`${process.env.PUBLIC_URL}/all`}>
-                        <section className="mw7 center">
-                            <h1 className="athelas ph3 ph0-l">All Posts</h1>
+                        <section className='mw7 center'>
+                            <h1 className='athelas ph3 ph0-l'>All Posts</h1>
                             {
                                 posts.length ?
                                     <div>
-                                        {posts.map(post => (<PostPreview {...post} currentUserID={currentUser ? currentUser.id : null} userName ={currentUser ? currentUser.email.split('@')[0] : null} handleLike={this.handleLike} />))}
+                                        {posts.map(post => (<PostPreview {...post} currentUser={currentUser} handleLike={this.handleLike} />))}
                                         <div className='ma3'>
                                             <Link to={`${process.env.PUBLIC_URL}/`} style={{ textDecoration: 'none' }}>
                                                 <Button style={{ textTransform: 'none' }} variant='outlined'>Back to News Feed</Button>
@@ -227,11 +231,7 @@ class App extends Component {
                         </section>
                     </Route>
 
-                    <Route exact path={`${process.env.PUBLIC_URL}/profile`}>
-                        <img src={currentUser ? currentUser.photoURL : ''} alt='profile pic' />
-                    </Route>
-
-                    <Route exact path={`${process.env.PUBLIC_URL}/profile/:userID`} component={ProfilePage} />
+                    <Route path={`${process.env.PUBLIC_URL}/profile/:userID`} render={props => <ProfilePage {...props} currentUser={currentUser} handleLike={this.handleLike} />} />
                 </Switch>
             </div>
         );
