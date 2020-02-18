@@ -5,10 +5,13 @@ import App from './App';
 import * as serviceWorker from './serviceWorker';
 
 import { BrowserRouter } from 'react-router-dom';
+import Particles from 'react-particles-js';
+import particlesOptions from './particlesOptions.json';
 import 'tachyons';
 
 ReactDOM.render(
     <BrowserRouter>
+        <Particles style={{ position: 'fixed', zIndex: -1 }} className='particles' params={particlesOptions} />
         <App />
     </BrowserRouter>,
     document.getElementById('root')

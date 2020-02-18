@@ -3,6 +3,14 @@
 	animation: pulse 0.5s;
 }
 
+.profile-link {
+	transition: 0.15s;
+}
+
+.profile-link:hover {
+	opacity: 0.5;
+}
+
 @keyframes pulse {
 	0% {
 		transform: scale(1);

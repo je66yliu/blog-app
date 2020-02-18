@@ -44,20 +44,21 @@ class App extends Component {
     };
 
     handleSubmit = () => {
-        const { titleField, contentField, currentUser, posts } = this.state;
+        const { titleField, contentField, currentUser } = this.state;
 
         if (!titleField.trim() || !contentField.trim()) {
             alert('Title or content cannot be empty!');
         } else {
-
-            const postID = 999999999 - posts.length;
+            
+            const currentTime = new Date();
+            const postID = 10000000000000 - currentTime.getTime();
             const newPost = {
                 id: postID,
                 key: uuidv1(),
                 title: titleField,
                 content: contentField,
                 author: currentUser,
-                date: new Date().toString().split(':').slice(0, 2).toString().replace(',', ':'),
+                date: currentTime.toString(),
                 likes: {}
             };
     
@@ -65,6 +66,10 @@ class App extends Component {
 
             firestore.doc(`posts/${postID}`).set(newPost);
         }
+    }
+
+    handleDelete = postID => {
+        firestore.doc(`posts/${postID}`).delete();
     }
 
     handleReset = () => {
@@ -112,7 +117,7 @@ class App extends Component {
 
         try {
             if (like) {
-                const updatedUserLikes = { ...postData.likes, [currentUser.id]: like };
+                const updatedUserLikes = { ...postData.likes, [currentUser.id]: currentUser };
                 await postRef.set({ ...postData, likes: updatedUserLikes });
             } else {
                 delete postData.likes[currentUser.id];
@@ -192,7 +197,7 @@ class App extends Component {
                             {
                                 posts.length ?
                                     <div>
-                                        {posts.slice((currentPage - 1) * 5, currentPage * 5).map(post => (<PostPreview {...post} currentUser={currentUser} handleLike={this.handleLike} />))}
+                                        {posts.slice((currentPage - 1) * 5, currentPage * 5).map(post => (<PostPreview {...post} currentUser={currentUser} handleLike={this.handleLike} handleDelete={this.handleDelete} />))}
                                         <div className='ma4'>
                                             <Button onClick={this.handlePageBackward} variant='contained' disabled={currentPage === 1}><ArrowBackIcon /></Button>
                                                 <span className='mh3'>{`Page ${currentPage} of ${Math.ceil(posts.length / 5)}`}</span>
@@ -219,7 +224,7 @@ class App extends Component {
                             {
                                 posts.length ?
                                     <div>
-                                        {posts.map(post => (<PostPreview {...post} currentUser={currentUser} handleLike={this.handleLike} />))}
+                                        {posts.map(post => (<PostPreview {...post} currentUser={currentUser} handleLike={this.handleLike} handleDelete={this.handleDelete} />))}
                                         <div className='ma3'>
                                             <Link to={`${process.env.PUBLIC_URL}/`} style={{ textDecoration: 'none' }}>
                                                 <Button style={{ textTransform: 'none' }} variant='outlined'>Back to News Feed</Button>
@@ -231,8 +236,9 @@ class App extends Component {
                         </section>
                     </Route>
 
-                    <Route path={`${process.env.PUBLIC_URL}/profile/:userID`} render={props => <ProfilePage {...props} currentUser={currentUser} handleLike={this.handleLike} />} />
+                    <Route path={`${process.env.PUBLIC_URL}/profile/:userID`} render={props => <ProfilePage {...props} currentUser={currentUser} handleLike={this.handleLike} handleDelete={this.handleDelete} />} />
                 </Switch>
+                <img src='https://img.pngio.com/university-texas-longhorn-clipart-free-85063-png-images-pngio-university-of-texas-longhorns-png-320_161.png' className='h2 w3 ma2' alt='longhorn' />
             </div>
         );
     }

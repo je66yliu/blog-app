@@ -33,11 +33,11 @@ class ProfilePage extends Component {
 
     render() {
         const { displayedUser, userPosts } = this.state;
-        const { currentUser, handleLike } = this.props;
+        const { currentUser, handleLike, handleDelete } = this.props;
 
         return (
             <div>
-                <article className='mw6 center bg-white br3 pa3 pa4-ns mv3 ba b--black-10'>
+                <article className='mw6 center bg-white br3 pa3 pa4-ns mv3 ba b--black-10' style={{ backgroundColor: '#f8faeb' }}>
                     <div className='tc'>
                         <img src={displayedUser ? displayedUser.photoURL : ''} className='br-100 h4 w4 dib ba b--black-05 pa2' alt='profile pic' />
                         <h1 className='f3 mb2'>
@@ -55,7 +55,7 @@ class ProfilePage extends Component {
                     <h1 className='athelas ph3 ph0-l'>{`${displayedUser ? displayedUser.displayName : ''}'s Posts`}</h1>
                     {
                         userPosts.length ?
-                            userPosts.map(post => (<PostPreview {...post} currentUser={currentUser} handleLike={handleLike} />))
+                            userPosts.map(post => (<PostPreview {...post} currentUser={currentUser} handleLike={handleLike} handleDelete={handleDelete} />))
                         :   <h3 className='fw4'>No posts yet!</h3>
                     }
                 </section>
