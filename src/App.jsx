@@ -38,11 +38,13 @@ class App extends Component {
         this.state = this.initialState;
     }
 
+    // Handles the state of the textbox for the createPost page
     handleChange = event => {
         const { name, value } = event.target;
         this.setState({ [name]: value })
     };
 
+    // Handles post submission
     handleSubmit = () => {
         const { titleField, contentField, currentUser } = this.state;
 
@@ -51,7 +53,7 @@ class App extends Component {
         } else {
             
             const currentTime = new Date();
-            const postID = 10000000000000 - currentTime.getTime();
+            const postID = 10000000000000 - currentTime.getTime();  // unique ID based on the timestamp of the post
             const newPost = {
                 id: postID,
                 key: uuidv1(),
@@ -68,10 +70,12 @@ class App extends Component {
         }
     }
 
+    // Deletes a post
     handleDelete = postID => {
         firestore.doc(`posts/${postID}`).delete();
     }
 
+    // Resets the textbox for createPost page
     handleReset = () => {
         this.setState({
             titleField: '',
@@ -79,18 +83,21 @@ class App extends Component {
         });
     }
 
+    // Goes to the next page of posts
     handlePageForward = () => {
         this.setState(state => ({
             currentPage: state.currentPage + 1
         }));
     }
 
+    // Goes to the previous page of posts
     handlePageBackward = () => {
         this.setState(state => ({
             currentPage: state.currentPage - 1
         }));
     }
 
+    // Handles the current user's subscription to the blog
     handleSubscription = async sub => {
         const userRef = firestore.doc(`users/${this.state.currentUser.id}`);
         const userObj = await userRef.get();
@@ -103,6 +110,7 @@ class App extends Component {
         }
     }
 
+    // Handles the action when a user likes a post
     handleLike = async (like, postID) => {
         const { currentUser } = this.state;
 
@@ -130,7 +138,7 @@ class App extends Component {
 
 
     componentDidMount() {
-        this.unsubscribeFromAuth = auth.onAuthStateChanged(async userAuth => {
+        this.unsubscribeFromAuth = auth.onAuthStateChanged(async userAuth => {  // Listener to detect when a user has logged in
             if (userAuth) {
                 const userRef = await createNewUser(userAuth);
 
@@ -146,11 +154,11 @@ class App extends Component {
         });
 
         const postRef = firestore.collection('posts');
-        this.unsubscribeFromSnapshot = postRef.onSnapshot(snapshot => {
+        this.unsubscribeFromSnapshot = postRef.onSnapshot(snapshot => { // Listener to detect when a new post is made
             const allPosts = snapshot.docs.map(doc => doc.data());
             this.setState({ posts: allPosts });
 
-            if (this.state.currentPage > 1 && this.state.currentPage > Math.ceil(allPosts.length / 5)) {
+            if (this.state.currentPage > 1 && this.state.currentPage > Math.ceil(allPosts.length / 5)) { // Prevents the current page from being out of bounds, like when posts are deleted but you are still on the last page
                 this.setState({ currentPage: Math.ceil(allPosts.length / 5) });
             }
         });
@@ -168,12 +176,12 @@ class App extends Component {
         return (
             <div className='App'>
                 <Header user={currentUser} />
-                <Switch>
+                <Switch> 
                     <Route exact path={`${process.env.PUBLIC_URL}/`}>
                         <section className='mw7 center'>
                             <h1 className='athelas ph3 ph0-l'>News Feed</h1>
                             
-                            {
+                            {   // Action buttons (new post, subscribe)
                                 currentUser ?
                                     <div>
                                         <div className='mh3 dib'>
@@ -194,7 +202,7 @@ class App extends Component {
                                 :   null
                             }
 
-                            {
+                            {   // Main post components, navigation footer (page navigation, view all posts button)
                                 posts.length ?
                                     <div>
                                         {posts.slice((currentPage - 1) * 5, currentPage * 5).map(post => (<PostPreview {...post} currentUser={currentUser} handleLike={this.handleLike} handleDelete={this.handleDelete} />))}
@@ -221,7 +229,7 @@ class App extends Component {
                     <Route path={`${process.env.PUBLIC_URL}/all`}>
                         <section className='mw7 center'>
                             <h1 className='athelas ph3 ph0-l'>All Posts</h1>
-                            {
+                            {   // Main posts page
                                 posts.length ?
                                     <div>
                                         {posts.map(post => (<PostPreview {...post} currentUser={currentUser} handleLike={this.handleLike} handleDelete={this.handleDelete} />))}
@@ -236,6 +244,7 @@ class App extends Component {
                         </section>
                     </Route>
 
+                    {/* Route path to a user's profile */}
                     <Route path={`${process.env.PUBLIC_URL}/profile/:userID`} render={props => <ProfilePage {...props} currentUser={currentUser} handleLike={this.handleLike} handleDelete={this.handleDelete} />} />
                 </Switch>
                 <img src='https://img.pngio.com/university-texas-longhorn-clipart-free-85063-png-images-pngio-university-of-texas-longhorns-png-320_161.png' className='h2 w3 ma2' alt='longhorn' />

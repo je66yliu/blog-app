@@ -19,10 +19,12 @@ firebase.initializeApp(firebaseConfig);
 export const auth = firebase.auth();
 export const firestore = firebase.firestore();
 
+// Google auth setup
 const provider = new firebase.auth.GoogleAuthProvider();
 provider.setCustomParameters({prompt: 'select_account'});
 
 
+// Creates a new user and writes it to the firestore database
 export const createNewUser = async (userAuth, additionalData) => {
     if (!userAuth) return;
 
