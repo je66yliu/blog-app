@@ -45,6 +45,8 @@ const DialogContent = withStyles(theme => ({
 }))(MuiDialogContent);
 
 class LikeDialog extends Component {
+    unsubscribeFromSnapshot = null;
+
     constructor(props) {
         super(props);
         this.state = { open: false, likes: [] };
@@ -61,6 +63,10 @@ class LikeDialog extends Component {
                 this.setState({ likes: [] });
             }
         });
+    }
+
+    componentWillUnmount() {
+        this.unsubscribeFromSnapshot();
     }
 
     handleClickOpen = () => {

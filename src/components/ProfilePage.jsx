@@ -3,32 +3,44 @@ import PostPreview from './PostPreview';
 import { firestore } from '../services/Firebase';
 
 class ProfilePage extends Component {
+    unsubscribeFromSnapshot = null;
+
     constructor(props) {
         super(props);
         this.state = { displayedUser: null, userPosts: [] };
     }
 
-    getUser = async () => {
-        const { match } = this.props;
-        const userRef = await firestore.doc(`users/${match.params.userID}`).get();
+    getUser = async userID => {
+        const userRef = await firestore.doc(`users/${userID}`).get();
         const userData = userRef.data();
         this.setState({ displayedUser: userData });
     }
 
-    componentDidMount() {
-        this.getUser();
-
-        const { match } = this.props;
+    setPosts = userID => {
         const postRef = firestore.collection('posts');
         this.unsubscribeFromSnapshot = postRef.onSnapshot(snapshot => {
             const allPosts = snapshot.docs.map(doc => doc.data());
-            const currentUserPosts = allPosts.filter(post => post.author.id === match.params.userID);
+            const currentUserPosts = allPosts.filter(post => post.author.id === userID);
             this.setState({ userPosts: currentUserPosts });
         });
     }
 
+    componentDidMount() {
+        const { match } = this.props;
+        this.getUser(match.params.userID);
+        this.setPosts(match.params.userID);
+    }
+
     componentWillUnmount() {
         this.unsubscribeFromSnapshot();
+    }
+
+    componentWillReceiveProps(nextProps) {
+        if (this.props.match.params.userID !== nextProps.match.params.userID) {
+            const { match } = nextProps;
+            this.getUser(match.params.userID);
+            this.setPosts(match.params.userID);
+        }
     }
 
     render() {
